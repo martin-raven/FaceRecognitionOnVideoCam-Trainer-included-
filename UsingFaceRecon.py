@@ -2,16 +2,23 @@ import face_recognition
 import os
 import cv2
 import pickle
-import face_recognition
+
+
 def getLabel(result,label):
     j=0
     for i in result:
         if(i):
             print("Image has "+label[j]+"in it .")
-        j+=1 
-TrainingData=[]
-labels=[]
-TestData=[]
+        j+=1
+if(os.path.isfile("TrainingData.pkl")):
+    trainedfile = open('TrainingData.pkl', 'rb')
+    Labelfile = open('LabelData.pkl', 'rb')
+    TrainingData=pickle.load(trainedfile)
+    labels=pickle.load(Labelfile)
+else:
+    TrainingData=[]
+    labels=[]
+    TestData=[]
 if(not(os.path.isfile("TrainingData.pkl"))):
     TraningFiles=os.listdir("TrainingData")
     for files in TraningFiles:
@@ -19,10 +26,16 @@ if(not(os.path.isfile("TrainingData.pkl"))):
         for Image in file:
             IMAGE=face_recognition.load_image_file("TrainingData"+"/"+TraningFiles[TraningFiles.index(files)]+"/"+Image)
             try:
+                image= cv2.imread("TrainingData"+"/"+TraningFiles[TraningFiles.index(files)]+"/"+Image,0)
+                (top, right, bottom, left) = face_recognition.face_locations(IMAGE)
+                cv2.rectangle(image, (left, top), (right, bottom), (0, 0, 255), 2)
+                cv2.imshow('Training Data',image)
+                cv2.wait(500)
                 TrainingData.append(face_recognition.face_encodings(IMAGE)[0])
                 labels.append(TraningFiles[TraningFiles.index(files)])
+                cv2.destroyAllWindows()
             except:
-                print("I wasn't able to locate any faces in at least one of the images. Check the image files: "+Image)
+                print("I wasn't able to locate any faces in at least one of the images. Check the image files: "+"TrainingData"+"/"+TraningFiles[TraningFiles.index(files)]+"/"+Image)
     trainedfile = open('TrainingData.pkl', 'wb')
     Labelfile = open('LabelData.pkl', 'wb')
     pickle.dump(TrainingData, trainedfile)
@@ -30,7 +43,7 @@ if(not(os.path.isfile("TrainingData.pkl"))):
 else:
     trainedfile = open('TrainingData.pkl', 'rb')
     Labelfile = open('LabelData.pkl', 'rb')
-    TrainingData=pickle.load(trainedfile);
+    TrainingData=pickle.load(trainedfile)
     labels=pickle.load(Labelfile)
 # TestFiles=os.listdir("TestData")
 # for Image in TestFiles:
